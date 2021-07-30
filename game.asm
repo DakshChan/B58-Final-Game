@@ -29,9 +29,9 @@ displayWidth:	.word 64
 displayHeight:	.word 64
 
 characterX:	.word 00	#characterX pos
-characterY:	.word 44	#characterY pos
+characterY:	.word 56	#characterY pos
 characterW:	.word 16	#character width
-characterH:	.word 16	#character height
+characterH:	.word 8	    #character height
 
 .text
 LOOPSTART:
@@ -64,7 +64,8 @@ rand_int_range ($t7, 60)
 lw $t0, displayBuffer # $t0 stores the base address for display
 
 lw $t5, displayWidth
-mul $t6, $t6, 4		#turns x into byte offset
+sll $t5, $t5, 2     # multiplies by 2
+sll $t6, $t6, 2		# turns x into byte offset (mult by 4)
 
 mul $t7, $t5, $t7	
 add $t6, $t6, $t7
@@ -98,6 +99,7 @@ sw $t3, 8($t6)
 sw $t3, 12($t6)
 add $t6, $t6, $t5
 
+jal BUFFTOSCREEN
 
 EXIT:
     li $v0, 10 # terminate the program gracefully
@@ -113,10 +115,9 @@ DRAWCHARACTER:
     li $t4, 0xd95763 # $t4 stores the red
 
     lw $t5, displayWidth
-    li $t6, 4
-    mul $t5, $t5, $t6
+    sll $t5, $t5, 2
     lw $t6, characterX
-    mul $t6, $t6, 4		#turns x into byte offset
+    sll $t6, $t6, 2		# turns x into byte offset (mult by 4)
     lw $t7, characterY
 
     mul $t7, $t5, $t7	
@@ -249,8 +250,7 @@ DRAWCHARACTER:
 CLEARSCREEN:
     lw $t0, displayBuffer
     lw $t1, displayWidth
-    li $t2, 4
-    mul $t1, $t1, $t2
+    sll $t1, $t1, 2
     lw $t2, displayHeight
 
     mul $t3, $t1, $t2
@@ -269,8 +269,7 @@ CLEARSCREEN:
 BUFFTOSCREEN:
     lw $t0, displayBuffer
     lw $t1, displayWidth
-    li $t2, 4
-    mul $t1, $t1, $t2
+    sll $t1, $t1, 2
     lw $t2, displayHeight
 
     mul $t3, $t1, $t2
