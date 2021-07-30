@@ -8,19 +8,28 @@
 # - Display height in pixels: 256
 # - Base Address for Display: 0x10040000 (heap)
 
-.macro sleep (%x)
+.macro sleep (%millis)
 li $v0, 32
-li $a0, %x
+li $a0, %millis
 syscall
+.end_macro
+
+.macro rand_int_range (%dest, %int)
+li $v0, 42
+li, $a0, 0
+li $a1, %int
+syscall
+move %dest, $a0
 .end_macro
 
 .data
 displayAddress: .word 0x10040000
-displayWidth:	.word 256	#display width in terms of bytes (number of bytes to display on next row)
-displayHeight:	.word 256	#display width in terms of bytes (number of bytes to display on next row)
+displayBuffer:  .word 0x10140000
+displayWidth:	.word 64
+displayHeight:	.word 64
 
 characterX:	.word 00	#characterX pos
-characterY:	.word 24	#characterY pos
+characterY:	.word 44	#characterY pos
 characterW:	.word 16	#character width
 characterH:	.word 16	#character height
 
@@ -31,7 +40,6 @@ lw $t0, characterX
 lw $t1, characterW
 add $t2, $t1, $t0
 lw $t3, displayWidth
-div $t3, $t3, 4
 
 bgt $t2, $t3, EXITANIMATION
 
@@ -39,6 +47,7 @@ jal CLEARSCREEN
 
 jal DRAWCHARACTER
 
+jal BUFFTOSCREEN
 sleep 300
 
 lw $t0, characterX
@@ -49,19 +58,10 @@ j LOOPSTART
 EXITANIMATION:
 #draw enemy
 
-li $v0, 42
-li, $a0, 0
-li $a1, 40
-syscall
-move $t6, $a0
+rand_int_range ($t6, 40)
+rand_int_range ($t7, 60)
 
-li $v0, 42
-li, $a0, 0
-li $a1, 60
-syscall
-move $t7, $a0
-
-lw $t0, displayAddress # $t0 stores the base address for display
+lw $t0, displayBuffer # $t0 stores the base address for display
 
 lw $t5, displayWidth
 mul $t6, $t6, 4		#turns x into byte offset
@@ -104,7 +104,7 @@ EXIT:
     syscall
 
 DRAWCHARACTER:
-    lw $t0, displayAddress # $t0 stores the base address for display
+    lw $t0, displayBuffer # $t0 stores the base address for display
 
     # from DB32 colour pallet, 4 colours used
     li $t1, 0x3f3f74 # $t1 stores the blue
@@ -113,6 +113,8 @@ DRAWCHARACTER:
     li $t4, 0xd95763 # $t4 stores the red
 
     lw $t5, displayWidth
+    li $t6, 4
+    mul $t5, $t5, $t6
     lw $t6, characterX
     mul $t6, $t6, 4		#turns x into byte offset
     lw $t7, characterY
@@ -245,8 +247,10 @@ DRAWCHARACTER:
     jr $ra
 
 CLEARSCREEN:
-    lw $t0, displayAddress
+    lw $t0, displayBuffer
     lw $t1, displayWidth
+    li $t2, 4
+    mul $t1, $t1, $t2
     lw $t2, displayHeight
 
     mul $t3, $t1, $t2
@@ -259,5 +263,28 @@ CLEARSCREEN:
     addi $t0, $t0, 4
     j CLEARSCREENLOOP
     CLEARSCREENENDLOOP:
+
+    jr $ra
+
+BUFFTOSCREEN:
+    lw $t0, displayBuffer
+    lw $t1, displayWidth
+    li $t2, 4
+    mul $t1, $t1, $t2
+    lw $t2, displayHeight
+
+    mul $t3, $t1, $t2
+    add $t3, $t3, $t0
+
+    lw $t4, displayAddress
+
+    BUFFTOSCREENLOOP:
+    beq $t0, $t3, BUFFTOSCREENENDLOOP
+    lw $t9, ($t0)
+    sw $t9, ($t4)
+    addi $t0, $t0, 4
+    addi $t4, $t4, 4
+    j BUFFTOSCREENLOOP
+    BUFFTOSCREENENDLOOP:
 
     jr $ra
