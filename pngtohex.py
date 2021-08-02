@@ -2,6 +2,8 @@ from PIL import Image
 
 
 def rgb2hex(r, g, b):
+    if r == g == b == 0:
+        return '-1'
     return '0x{:02x}{:02x}{:02x}'.format(r, g, b)
 
 
