@@ -231,23 +231,26 @@ KEYBOARDINPUT:
     li $t9, 0xffff0000
     lw $t8, 0($t9)
     bne $t8, 1, KEYBOARDINPUTDONE
-    lw $t2, 4($t9) # this assumes $t9 is set to 0xfff0000from before
+    lw $t2, 4($t9)
 
-    bne $t2, 0x77, KEYBOARDINPUTW # ASCII code of 'w' is 0x77 or 119 in decimal
+    # up
+    bne $t2, 0x77, KEYBOARDINPUTW
         lw $t0, characterY
         beq	$t0, 0, KEYBOARDINPUTDONE
         addi $t0, $t0, -2
         sw $t0, characterY
     KEYBOARDINPUTW:
 
-    bne $t2, 0x61, KEYBOARDINPUTA # ASCII code of 'a' is 0x61 or 97 in decimal
+    # left
+    bne $t2, 0x61, KEYBOARDINPUTA
         lw $t0, characterX
         beq	$t0, 0, KEYBOARDINPUTDONE
         addi $t0, $t0, -2
         sw $t0, characterX
     KEYBOARDINPUTA:
     
-    bne $t2, 0x73, KEYBOARDINPUTS # ASCII code of 's' is 0x73 or 115 in decimal
+    # down
+    bne $t2, 0x73, KEYBOARDINPUTS
         lw $t0, characterY
         lw $t1, characterH
         add $t1, $t1, $t0
@@ -257,7 +260,8 @@ KEYBOARDINPUT:
         sw $t0, characterY
     KEYBOARDINPUTS:
 
-    bne $t2, 0x64, KEYBOARDINPUTD # ASCII code of 'd' is 0x61 or 100 in decimal
+    # right
+    bne $t2, 0x64, KEYBOARDINPUTD
         lw $t0, characterX
         lw $t1, characterW
         add $t1, $t1, $t0
@@ -267,9 +271,20 @@ KEYBOARDINPUT:
         sw $t0, characterX
     KEYBOARDINPUTD:
 
-    bne $t2, 0x70, KEYBOARDINPUTP # ASCII code of 'p' is 0x70 or 112 in decimal
+    # restarts / loads game
+    bne $t2, 0x70, KEYBOARDINPUTP
         j GAMELOOPSETUP
     KEYBOARDINPUTP:
+    
+    # goes to game over
+    bne $t2, 0x71, KEYBOARDINPUTQ
+        j GAMELOOPSETUP
+    KEYBOARDINPUTQ:
+    
+    # goes to main menu
+    bne $t2, 0x6d, KEYBOARDINPUTM
+        j MAINMENUSETUP
+    KEYBOARDINPUTM:
 
     KEYBOARDINPUTDONE:
     jr $ra
