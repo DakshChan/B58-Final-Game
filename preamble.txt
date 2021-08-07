@@ -6,30 +6,38 @@
 # Student: Daksh Malhotra, 1006912094, malho258
 #
 # Bitmap Display Configuration:
-# -Unit width in pixels: 4 (update this as needed)
-# -Unit height in pixels: 4 (update this as needed)
-# -Display width in pixels: 512 (update this as needed)
-# -Display height in pixels: 256 (update this as needed)
+# -Unit width in pixels: 4
+# -Unit height in pixels: 4
+# -Display width in pixels: 512
+# -Display height in pixels: 256
 # -Base Address for Display: 0x10040000 (heap)
 #
 # Which milestones have been reached in this submission?
-# (See the assignment handout for descriptions of the milestones)
-# -Milestone 1/2/3 (choose the one thatapplies)
+# - Milestone 3
 #
 # Which approved features have been implemented for milestone 3?
-# (See the assignment handout for the list of additional features)
-# 1. (fill in the feature, if any)
-# 2. (fill in the feature, if any)
-# 3. (fill in the feature, if any)
-# ... (add more if necessary)
-#
+# 1.
+# 2. 
+# 3. 
+# 
+# Non approved additional features
+# 1. No flickering. added a buffer so it doesn't flicker
+# 2. Sprite rendering! The sprites are loaded and displayed
+#    from a word array instead of being hard coded.
+# 3.
+# 
 # Link to video demonstration for final submission:
-# -(insert YouTube / MyMedia / other URL here). Make sure we can view it!
+# - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
 #
 # Are you OK with us sharing the video with people outside course staff?
-# -yes / no/ yes, and please share this project githublink as well!
+# - yes, and please share this project github link as well!
+# - https://github.com/DakshChan/B58-Final-Game
 #
 # Any additional information that the TA needs to know:
-# -(write here, if any)
+# - A fresh launch of mips is recommended. Also recommend
+#   the regular mips, not the "fixed" mips as it runs better.
+# - If the game crashes (which it shouldn't), on relaunch the game will
+#   be extremely slow. You should restart mips if this happens.
+#   If you paused or stopped manually, It should be fine.
 #
 #####################################################################
