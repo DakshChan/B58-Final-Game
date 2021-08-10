@@ -33,7 +33,7 @@
 #    behaviors, a brand new enemy can be added in 1 minute of effort
 # 
 # Link to video demonstration for final submission:
-# - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
+# - https://youtu.be/NJM-egTuMwY
 #
 # Are you OK with us sharing the video with people outside course staff?
 # - yes, and please share this project github link as well!
@@ -365,7 +365,6 @@ GAMEOVERSETUP:
     draw_sprite (gameOverBackground, 128, 64, 0, 0)
     draw_sprite (gameOverTitle, 88, 22, 20, 24)
     lw $t1, gameScoreDigits
-    print_int($t1)
     mul $t1, $t1, 2
     add $t1, $t1, -1
     li $t2, 64 
