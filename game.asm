@@ -109,6 +109,17 @@
     ENDFOR:
 .end_macro
 
+.macro collision (%attributes, %positions, %enemyW, %enemyH, %behaviour)
+    lw $s0, %attributes
+    la $s1, %positions
+    add $t5, $zero, %enemyW
+    add $t6, $zero, %enemyH
+    la $t7, %behaviour
+    save_ra
+    jal COLLISION
+    load_ra
+.end_macro
+
 .macro draw_enemy (%attributes, %array, %sprite, %width, %height)
     lw $s0, %attributes
     
@@ -129,17 +140,6 @@
     draw_enemy (enemyOneAttributes, enemyOnePositions, enemyOneSprite, ENEMY_ONE_WIDTH, ENEMY_ONE_HEIGHT)
 .end_macro
 
-.macro collision (%attributes, %positions, %enemyW, %enemyH, %behaviour)
-    lw $s0, %attributes
-    la $s1, %positions
-    add $t5, $zero, %enemyW
-    add $t6, $zero, %enemyH
-    la $t7, %behaviour
-    save_ra
-    jal COLLISION
-    load_ra
-.end_macro
-
 .macro move_enemy (%attributes, %positions, %behaviour)
     la $t6, %attributes
     la $t5, %positions
@@ -153,8 +153,27 @@
     move_enemy (enemyOneAttributes, enemyOnePositions, BASICMOVEMENTBEHAVIOUR)
 .end_macro
 
+.macro spawn_enemy (%attributes, %positions, %enemyWidth, %enemyHeight, %amountMax, %delayMin, %delayMax)
+    la $t0, %attributes
+    la $t1, %positions
+    add $s0, $zero, %enemyHeight
+    add $s1, $zero, %amountMax
+    add $s2, $zero, %delayMin
+    add $s3, $zero, %delayMax
+    add $s4, $zero, %enemyWidth
+    save_ra
+    jal ENEMYSPAWNER
+    load_ra
+.end_macro
+
+.macro spawn_enemys
+    spawn_enemy (enemyOneAttributes, enemyOnePositions, ENEMY_ONE_WIDTH, ENEMY_ONE_HEIGHT, ENEMY_ONE_MAX_AMOUNT, ENEMY_ONE_SPAWN_DELAY_MIN, ENEMY_ONE_SPAWN_DELAY_MAX)
+.end_macro
+
 .eqv characterW 16
 .eqv characterH 8
+
+.eqv MAX_HEIGHT 8
 
 .eqv GRAZE_PIXELS 5
 
@@ -315,11 +334,25 @@ GAMEOVERSETUP:
 GAMELOOPSETUP:
     set_mem (characterX, 4, 0)
     set_mem (characterY, 28, 0)
-    set_mem (enemyOneAttributes, 0, 0)
-    set_mem (enemyOneAttributes, ENEMY_ONE_SPAWN_DELAY_MIN, 4)
     set_mem (characterHealth, 10, 0)
+    
     set_mem (gameScores, 0, 0)
     set_mem (gameScoreDigits, 1, 0)
+
+    set_mem (enemyOneAttributes, 0, 0)
+    set_mem (enemyOneAttributes, ENEMY_ONE_SPAWN_DELAY_MIN, 4)
+
+    set_mem (enemyTwoAttributes, 0, 0)
+    set_mem (enemyTwoAttributes, ENEMY_TWO_SPAWN_DELAY_MIN, 4)
+
+    set_mem (enemyThreeAttributes, 0, 0)
+    set_mem (enemyThreeAttributes, ENEMY_THREE_SPAWN_DELAY_MIN, 4)
+
+    set_mem (powerUpHealthAttributes, 0, 0)
+    set_mem (powerUpHealthAttributes, POWERUP_HEALTH_SPAWN_DELAY_MAX, 4)
+
+    set_mem (powerUpSakuraAttributes, 0, 0)
+    set_mem (powerUpSakuraAttributes, POWERUP_SAKURA_SPAWN_DELAY_MAX, 4)
 
     GAMELOOPSTART:
         # collision
@@ -327,7 +360,7 @@ GAMELOOPSETUP:
 
         #update enemys
         move_enemys ()
-        jal ENEMYHANDLER
+        spawn_enemys ()
 
         # Draws background
         draw_sprite (backgroundImage, 128, 64, 0, 0)
@@ -400,7 +433,7 @@ KEYBOARDINPUT:
     # up
     bne $t2, 0x77, KEYBOARDINPUTW
         lw $t0, characterY
-        beq	$t0, 0, KEYBOARDINPUTDONE
+        beq	$t0, MAX_HEIGHT, KEYBOARDINPUTDONE
         addi $t0, $t0, -2
         sw $t0, characterY
     KEYBOARDINPUTW:
@@ -572,23 +605,38 @@ COLBEHAVIOURSUB1H:
     sw $t9, characterHealth
     jr $ra
 
-ENEMYHANDLER:
-    lw $t2, enemyOneAttributes + 0($zero)
-    lw $t3, enemyOneAttributes + 4($zero)
-    bge $t2, ENEMY_ONE_MAX_AMOUNT, ENDENEMYHANDLERLOOP
+ENEMYSPAWNER:
+    # $t0 attributes address
+    # $t1 positions address
+
+    # $s0, enemy height
+    # $s1, max amount
+    # $s2, delay min
+    # $s3, delay max
+    # $s4, enemy width
+
+    lw $t2, 0($t0)
+    lw $t3, 4($t0)
+    bge $t2, $s1, ENDENEMYHANDLERLOOP
     addi $t3, $t3, -1
-    sw $t3, enemyOneAttributes + 4($zero)
+    sw $t3, 4($t0)
     bge $t3, 0, ENDENEMYHANDLERLOOP
-        rand_int_range($t5, ENEMY_ONE_SPAWN_DELAY_MIN, ENEMY_ONE_SPAWN_DELAY_MAX)
-        set_mem (enemyOneAttributes, $t5, 4)
+        rand_int_range($t5, $s2, $s3)
+        sw $t5, 4($t0)
         add $t6, $t2, 1
-        set_mem (enemyOneAttributes, $t6, 0) 
+        sw $t6, 0($t0)
 
         sll $t2, $t2, 3
-        rand_int_range($t4, 10, 40)
-        set_mem (enemyOnePositions, 121, $t2)
+        li $t9, 64
+        sub $t9, $t9, $s0
+        rand_int_range($t4, MAX_HEIGHT, $t9)
+        add $t7, $t1, $t2
+        li $t8, 128
+        sub $t8, $t8, $s4
+        sw $t8, ($t7)
         add $t2, $t2, 4
-        set_mem (enemyOnePositions, $t4, $t2)
+        add $t7, $t1, $t2
+        sw $t4, ($t7)
 
     ENDENEMYHANDLERLOOP:
 

@@ -1,8 +1,8 @@
 from PIL import Image
 
 
-def rgb2hex(r, g, b):
-    if r == g == b == 0:
+def rgb2hex(r, g, b, a=-1):
+    if a == 0 or (a == -1 and r <= g == b == 0):
         return '-1'
     return '0x{:02x}{:02x}{:02x}'.format(r, g, b)
 
