@@ -8,7 +8,7 @@
 # - Display height in pixels: 256
 # - Base Address for Display: 0x10040000 (heap)
 
-.eqv SLEEP_TIME 0
+.eqv SLEEP_TIME 40
 
 .macro sleep (%millis)
     li $v0, 32
@@ -97,18 +97,6 @@
     load_ra
 .end_macro
 
-.macro draw_sprite_memory(%label, %width, %height, %x, %y)
-    save_ra
-    la $t0, %label
-    move $v0, $t0
-    lw $a0, %width
-    lw $a1, %height
-    lw $a2, %x
-    lw $a3, %y
-    jal DRAWSPRITE
-    load_ra
-.end_macro
-
 .macro for (%regIterator, %from, %to, %command)
 	add %regIterator, $zero, %from
 	Loop:
@@ -121,10 +109,61 @@
     ENDFOR:
 .end_macro
 
+.macro draw_enemy (%attributes, %array, %sprite, %width, %height)
+    lw $s0, %attributes
+    
+    j DRAWENEMYSLOOP
+    DRAWENEMYSDRAW:
+        sll $t0, $s1, 3
+        lw $t1, %array+0($t0)
+        lw $t2, %array+4($t0)
 
-.eqv ENEMYONESPAWNDELAYMIN 10
-.eqv ENEMYONESPAWNDELAYMAX 30
-.eqv ENEMYONEMAXAMOUNT  10
+        draw_sprite (%sprite, %width, %height, $t1, $t2)
+
+        jr $ra
+    DRAWENEMYSLOOP:
+        for ($s1, 0, $s0, DRAWENEMYSDRAW)
+.end_macro
+
+.macro draw_enemys
+    draw_enemy (enemyOneAttributes, enemyOnePositions, enemyOneSprite, ENEMY_ONE_WIDTH, ENEMY_ONE_HEIGHT)
+.end_macro
+
+.macro collision (%attributes, %positions, %enemyW, %enemyH, %colBehaviour)
+    lw $s0, %attributes
+    la $s1, %positions
+    add $t5, $zero, %enemyW
+    add $t6, $zero, %enemyH
+    la $t7, %colBehaviour
+    save_ra
+    jal COLLISION
+    load_ra
+.end_macro
+
+.eqv characterW 16
+.eqv characterH 8
+
+.eqv GRAZE_PIXELS 5
+
+.eqv ENEMY_ONE_SPAWN_DELAY_MIN 10
+.eqv ENEMY_ONE_SPAWN_DELAY_MAX 30
+.eqv ENEMY_ONE_MAX_AMOUNT 10        # must be less than 16 unless array size is changed
+.eqv ENEMY_ONE_WIDTH 7
+.eqv ENEMY_ONE_HEIGHT 7
+
+.eqv ENEMY_TWO_SPAWN_DELAY_MIN 10
+.eqv ENEMY_TWO_SPAWN_DELAY_MAX 30
+.eqv ENEMY_TWO_MAX_AMOUNT 10        # must be less than 16 unless array size is changed
+.eqv ENEMY_TWO_WIDTH 7
+.eqv ENEMY_TWO_HEIGHT 7
+
+.eqv ENEMY_THREE_SPAWN_DELAY_MIN 10
+.eqv ENEMY_THREE_SPAWN_DELAY_MAX 30
+.eqv ENEMY_THREE_MAX_AMOUNT 10      # must be less than 16 unless array size is changed
+.eqv ENEMY_THREE_WIDTH 7
+.eqv ENEMY_THREE_HEIGHT 7
+
+
 
 .data 0x10100000
 memZero:        .word 0
@@ -135,24 +174,22 @@ displayHeight:  .word 64
 
 characterX:	.word 04	#characterX pos
 characterY:	.word 28	#characterY pos
-characterW:	.word 16	#character width
-characterH:	.word 08    #character height
 characterHealth:    .word 10
 
 healthRed:          .word 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232, 0xac3232
 healthGrey:         .word 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454, 0x545454
 healthMask:         .word 0xfa8081, -1, 0xfa8081, -1, 0xfa8081, 0xfa8081, 0xfa8081, -1, 0xfa8081, -1, 0xfa8081, 0xfa8081, 0xfa8081, -1, 0xfa8081, -1, 0xfa8081, 0xfa8081, 0xfa8081, -1, 0xfa8081, -1, 0xfa8081, 0xfa8081, 0xfa8081, -1, 0xfa8081, -1, 0xfa8081, -1, -1, -1, -1, -1, 0xfa8081, -1, -1, -1, -1, -1, 0xfa8081, -1, -1, -1, -1, -1, 0xfa8081, -1, -1, -1, -1, -1, 0xfa8081, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0xfa8081, -1, -1, -1, -1, -1, 0xfa8081, -1, -1, -1, -1, -1, 0xfa8081, -1, -1, -1, -1, -1, 0xfa8081, -1, -1, -1, -1, -1, 0xfa8081, -1, -1, -1, 0xfa8081, 0xfa8081, 0xfa8081, -1, -1, -1, 0xfa8081, 0xfa8081, 0xfa8081, -1, -1, -1, 0xfa8081, 0xfa8081, 0xfa8081, -1, -1, -1, 0xfa8081, 0xfa8081, 0xfa8081, -1, -1, -1, 0xfa8081, 0xfa8081, 0xfa8081, -1, 0xfa8081, 0xfa8081, 0xfa8081, 0xfa8081, 0xfa8081, -1, 0xfa8081, 0xfa8081, 0xfa8081, 0xfa8081, 0xfa8081, -1, 0xfa8081, 0xfa8081, 0xfa8081, 0xfa8081, 0xfa8081, -1, 0xfa8081, 0xfa8081, 0xfa8081, 0xfa8081, 0xfa8081, -1, 0xfa8081, 0xfa8081
 
-num0Img:    .word 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b, -1, 0xffe09b, 0xffe09b, -1, 0xffe09b, 0xffe09b, -1, 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b
-num1Img:    .word -1, 0xffe09b, -1, 0xffe09b, 0xffe09b, -1, -1, 0xffe09b, -1, -1, 0xffe09b, -1, 0xffe09b, 0xffe09b, 0xffe09b
-num2Img:    .word 0xffe09b, 0xffe09b, 0xffe09b, -1, -1, 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b, -1, -1, 0xffe09b, 0xffe09b, 0xffe09b
-num3Img:    .word 0xffe09b, 0xffe09b, 0xffe09b, -1, -1, 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b, -1, -1, 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b
-num4Img:    .word 0xffe09b, -1, 0xffe09b, 0xffe09b, -1, 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b, -1, -1, 0xffe09b, -1, -1, 0xffe09b
-num5Img:    .word 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b, -1, -1, 0xffe09b, 0xffe09b, 0xffe09b, -1, -1, 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b
-num6Img:    .word 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b, -1, -1, 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b, -1, 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b
-num7Img:    .word 0xffe09b, 0xffe09b, 0xffe09b, -1, -1, 0xffe09b, -1, -1, 0xffe09b, -1, -1, 0xffe09b, -1, -1, 0xffe09b
-num8Img:    .word 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b, -1, 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b, -1, 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b
-num9Img:    .word 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b, -1, 0xffe09b, 0xffe09b, 0xffe09b, 0xffe09b, -1, -1, 0xffe09b, -1, -1, 0xffe09b
+num0Img:    .word 0, 0, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 0, 0
+num1Img:    .word -1, 0, -1, 0, 0, -1, -1, 0, -1, -1, 0, -1, 0, 0, 0
+num2Img:    .word 0, 0, 0, -1, -1, 0, 0, 0, 0, 0, -1, -1, 0, 0, 0
+num3Img:    .word 0, 0, 0, -1, -1, 0, 0, 0, 0, -1, -1, 0, 0, 0, 0
+num4Img:    .word 0, -1, 0, 0, -1, 0, 0, 0, 0, -1, -1, 0, -1, -1, 0
+num5Img:    .word 0, 0, 0, 0, -1, -1, 0, 0, 0, -1, -1, 0, 0, 0, 0
+num6Img:    .word 0, 0, 0, 0, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0
+num7Img:    .word 0, 0, 0, -1, -1, 0, -1, -1, 0, -1, -1, 0, -1, -1, 0
+num8Img:    .word 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0
+num9Img:    .word 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, -1, 0, -1, -1, 0
 
 gameScores:         .word 0
 gameScoreDigits:    .word 1
@@ -171,11 +208,26 @@ gameOverTitle:      .word -1, -1, -1, -1, 0x000000, 0x000000, 0x000000, 0x000000
   
 enemyOneSprite:     .word -1, 0xac3232, -1, -1, -1, 0xac3232, -1, 0xac3232, 0xd95763, 0xac3232, -1, 0xac3232, 0x222034, 0xac3232, 0xac3232, 0xd95763, 0xd95763, 0xac3232, 0x222034, 0xd95763, 0xac3232, 0xac3232, 0x222034, 0xd95763, 0x222034, 0xd95763, 0xd95763, 0xac3232, -1, 0xac3232, 0x222034, 0x222034, 0x222034, 0xac3232, -1, -1, -1, 0xac3232, 0xd95763, 0xac3232, -1, -1, -1, -1, -1, 0xac3232, -1, -1, -1
 
-#amount, spawndelay
-enemyOneAttributes: .word 0, 40
+#amount
+enemyOneAttributes: .word 0
 #x1, y1, x2, y2, ...
 enemyOnePositions:  .word 0:32
 
+enemyTwoSprite:     .word -1, 0x99e550, 0x6abe30, 0x99e550, 0x6abe30, 0x6abe30, -1, 0xd95763, 0x6abe30, 0x6abe30, 0x6abe30, 0x99e550, 0x99e550, 0x99e550, 0x99e550, 0x99e550, 0x6abe30, 0x6abe30, 0x6abe30, 0x6abe30, 0xd95763, -1, 0xd95763, 0x6abe30, 0x99e550, 0x6abe30, 0x6abe30, -1, 0x000000, 0x000000, 0x000000, 0x000000, 0x8f563b, -1, -1, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, -1, -1, -1, 0x8f563b, 0x8f563b, 0x8f563b, 0x000000, 0x8f563b, -1
+enemyTwoAttributes: .word 0
+enemyTwoPositions:  .word 0:32
+
+enemyThreeSprite:       .word 0x663931, -1, -1, -1, -1, -1, -1, 0x663931, 0x663931, 0xc89844, 0xc89844, 0xc89844, -1, -1, -1, 0x663931, 0x663931, 0xffd765, 0xffd765, 0xc89844, -1, 0xc89844, 0xffd765, 0x663931, 0x663931, 0xffd765, 0xffd765, 0xc89844, 0x3f3f74, 0x3f3f74, 0x3f3f74, 0x3f3f74, 0x3f3f74, 0x3f3f74, 0x3f3f74, 0xcbdbfc, 0x3f3f74, 0xcbdbfc, 0x3f3f74, 0xcbdbfc, 0x3f3f74, 0xcbdbfc, -1, 0xcbdbfc, 0xcbdbfc, 0xcbdbfc, 0xcbdbfc, 0xcbdbfc, -1
+enemyThreeAttributes:   .word 0
+enemyThreePositions:    .word 0:32
+
+powerUpHealthSprite:        .word -1, 0x323c39, -1, -1, -1, 0x323c39, -1, 0x323c39, 0x3f3f74, 0x323c39, -1, 0x323c39, 0x696a6a, 0x323c39, 0x323c39, 0x222034, 0x696a6a, 0x323c39, 0x696a6a, 0x696a6a, 0x323c39, 0x3f3f74, 0x3f3f74, 0x696a6a, 0x696a6a, 0x696a6a, 0x696a6a, 0x323c39, 0x3f3f74, 0x323c39, 0x696a6a, 0x696a6a, 0x696a6a, 0x323c39, -1, -1, -1, 0x323c39, 0x696a6a, 0x323c39, -1, -1, 0x3f3f74, -1, -1, 0x323c39, -1, -1, -1
+powerUpHealthAttributes:    .word 0
+powerUpHealthPositions:     .word 0:32
+
+powerUpSakuraSprite:        .word -1, 0xd77bba, 0xd77bba, -1, 0xd77bba, 0xd77bba, -1, 0xd77bba, 0xd77bba, 0xd77bba, 0xd95763, 0xd77bba, 0xd77bba, 0xd77bba, 0xd77bba, 0xd77bba, 0xd95763, 0xfbf236, 0xd95763, 0xd77bba, 0xd77bba, -1, 0xd95763, 0xfbf236, 0xfbf236, 0xfbf236, 0xd95763, -1, 0xd77bba, 0xd77bba, 0xd95763, 0xfbf236, 0xd95763, 0xd77bba, 0xd77bba, 0xd77bba, 0xd77bba, 0xd77bba, 0xd95763, 0xd77bba, 0xd77bba, 0xd77bba, -1, 0xd77bba, 0xd77bba, -1, 0xd77bba, 0xd77bba, -1
+powerUpSakuraAttributes:    .word 0
+powerUpSakuraPositions:     .word 0:32
 
 .text 0x00400000
 MAINMENUSETUP:
@@ -241,13 +293,17 @@ GAMELOOPSETUP:
     set_mem (characterX, 4, 0)
     set_mem (characterY, 28, 0)
     set_mem (enemyOneAttributes, 0, 0)
-    set_mem (enemyOneAttributes, ENEMYONESPAWNDELAYMIN, 4)
+    set_mem (enemyOneAttributes, ENEMY_ONE_SPAWN_DELAY_MIN, 4)
     set_mem (characterHealth, 10, 0)
     set_mem (gameScores, 0, 0)
     set_mem (gameScoreDigits, 1, 0)
 
     GAMELOOPSTART:
-        jal COLLISION
+        # collision
+        collision (enemyOneAttributes, enemyOnePositions, ENEMY_ONE_WIDTH, ENEMY_ONE_HEIGHT, COLBEHAVIOURSUB1H)
+
+        #update enemys
+        jal ENEMYMOVEMENT
         jal ENEMYHANDLER
 
         # Draws background
@@ -257,10 +313,12 @@ GAMELOOPSETUP:
         jal DRAWHEALTH
 
         # Draws enemys
-        jal DRAWENEMYONE
+        draw_enemys ()
 
         # Draws character
-        draw_sprite_memory (characterImage, characterW, characterH, characterX, characterY)
+        lw $t0, characterX
+        lw $t1, characterY
+        draw_sprite (characterImage, characterW, characterH, $t0, $t1)
 
         # Draw Score
         set_mem (gameScoreDigits, 0, 0)
@@ -284,7 +342,6 @@ GAMELOOPSETUP:
         j GAMELOOPSTART
 
 # functions
-
 EXIT:
     li $v0, 10 # terminate the program gracefully
     syscall
@@ -336,7 +393,7 @@ KEYBOARDINPUT:
     # down
     bne $t2, 0x73, KEYBOARDINPUTS
         lw $t0, characterY
-        lw $t1, characterH
+        li $t1, characterH
         add $t1, $t1, $t0
         lw $t3, displayHeight
         beq	$t1, $t3, KEYBOARDINPUTDONE
@@ -347,7 +404,7 @@ KEYBOARDINPUT:
     # right
     bne $t2, 0x64, KEYBOARDINPUTD
         lw $t0, characterX
-        lw $t1, characterW
+        li $t1, characterW
         add $t1, $t1, $t0
         lw $t3, displayWidth
         beq	$t1, $t3, KEYBOARDINPUTDONE
@@ -438,59 +495,68 @@ DRAWHEALTH:
     jr $ra
 
 COLLISION: 
-    lw $s0, enemyOneAttributes
+    # $s0, enemyAttributes
+    # $s1, enemyPos
 
     lw $t3, characterX
     lw $t4, characterY
-    
-    j ENEMYONECOLLISION
-    COLLISIONONE:
-        sll $t0, $s1, 3
-        lw $t1, enemyOnePositions+0($t0)
-        lw $t2, enemyOnePositions+4($t0)
 
-        li $t9, 7
+    # $t5, enemyW
+    # $t6, enemyH
+
+    # $t7, colBehaviour
+    
+    j COLLISIONFOR
+    COLLISIONLOOP:
+        sll $t0, $s2, 3
+        add $t0, $t0, $s1
+        lw $t1, 0($t0)
+        lw $t2, 4($t0)
+
+        move $t9, $t5 # e width
         add $t9, $t9, $t1
         bge $t3, $t9, COLLISIONCHECKDONE
-        lw $t9, characterW
+        li $t9, characterW
         add $t9, $t9, $t3
         ble $t9, $t1, COLLISIONCHECKDONE
-        li $t9, 7
+        move $t9, $t6 # e height
         add $t9, $t9, $t2
         bgt $t4, $t9, COLLISIONCHECKDONE
-        lw $t9, characterH
+        li $t9, characterH
         add $t9, $t9, $t4
         ble $t9, $t2, COLLISIONCHECKDONE
 
-        # Collision
-        lw $t9, characterHealth
-        addi $t9, $t9, -1
-        sw $t9, characterHealth
+        # Collision Behaviour
+        save_ra
+        jalr $t7
+        load_ra
 
         # Set enemy pos to 1 so it gets removed by movement script
         li $t1, 1
-        sw $t1, enemyOnePositions+0($t0)
+        sw $t1, 0($t0)
 
         COLLISIONCHECKDONE:
         jr $ra
 
-    ENEMYONECOLLISION:
-        for ($s1, 0, $s0, COLLISIONONE)
+    COLLISIONFOR:
+        for ($s2, 0, $s0, COLLISIONLOOP)
 
     jr $ra
 
-ENEMYHANDLER:
-    save_ra
-    jal ENEMYMOVEMENT
-    load_ra
+COLBEHAVIOURSUB1H:
+    lw $t9, characterHealth
+    addi $t9, $t9, -1
+    sw $t9, characterHealth
+    jr $ra
 
+ENEMYHANDLER:
     lw $t2, enemyOneAttributes + 0($zero)
     lw $t3, enemyOneAttributes + 4($zero)
-    bge $t2, ENEMYONEMAXAMOUNT, ENDENEMYHANDLERLOOP
+    bge $t2, ENEMY_ONE_MAX_AMOUNT, ENDENEMYHANDLERLOOP
     addi $t3, $t3, -1
     sw $t3, enemyOneAttributes + 4($zero)
     bge $t3, 0, ENDENEMYHANDLERLOOP
-        rand_int_range($t5, ENEMYONESPAWNDELAYMIN, ENEMYONESPAWNDELAYMAX)
+        rand_int_range($t5, ENEMY_ONE_SPAWN_DELAY_MIN, ENEMY_ONE_SPAWN_DELAY_MAX)
         set_mem (enemyOneAttributes, $t5, 4)
         add $t6, $t2, 1
         set_mem (enemyOneAttributes, $t6, 0) 
@@ -514,7 +580,7 @@ ENEMYMOVEMENT:
         lw $t9, enemyOnePositions+0($t4)
         addi $t9, $t9, -1
         sw $t9, enemyOnePositions+0($t4)
-        bne $t9, $zero, ENEMYMOVEMENTREMOVEDONE
+        bgt $t9, $zero, ENEMYMOVEMENTREMOVEDONE
         li $t9, 120
         ENEMYMOVEMENTREMOVELOOP:
             beq $t4, $t9, ENEMYMOVEMENTREMOVELOOPDONE
@@ -530,23 +596,6 @@ ENEMYMOVEMENT:
         jr $ra
     ENEMYMOVEMENTFOR:
         for ($t2, 0, $t7, ENEMYMOVEMENTMOVE)
-
-    jr $ra
-
-DRAWENEMYONE:
-    lw $s0, enemyOneAttributes
-    
-    j ENEMYONEDRAWLOOP
-    DRAWENEMYONELOOP:
-        sll $t0, $s1, 3
-        lw $t1, enemyOnePositions+0($t0)
-        lw $t2, enemyOnePositions+4($t0)
-
-        draw_sprite (enemyOneSprite, 7, 7, $t1, $t2)
-
-        jr $ra
-    ENEMYONEDRAWLOOP:
-        for ($s1, 0, $s0, DRAWENEMYONELOOP)
 
     jr $ra
 

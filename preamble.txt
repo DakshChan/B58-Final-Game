@@ -21,7 +21,7 @@
 # 3. 
 # 
 # Non approved additional features
-# 1. No flickering. added a buffer so it doesn't flicker
+# 1. No flickering. Added a buffer so it doesn't flicker.
 # 2. Sprite rendering! The sprites are loaded and displayed
 #    from a word array instead of being hard coded.
 # 3.
