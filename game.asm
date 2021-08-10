@@ -129,15 +129,28 @@
     draw_enemy (enemyOneAttributes, enemyOnePositions, enemyOneSprite, ENEMY_ONE_WIDTH, ENEMY_ONE_HEIGHT)
 .end_macro
 
-.macro collision (%attributes, %positions, %enemyW, %enemyH, %colBehaviour)
+.macro collision (%attributes, %positions, %enemyW, %enemyH, %behaviour)
     lw $s0, %attributes
     la $s1, %positions
     add $t5, $zero, %enemyW
     add $t6, $zero, %enemyH
-    la $t7, %colBehaviour
+    la $t7, %behaviour
     save_ra
     jal COLLISION
     load_ra
+.end_macro
+
+.macro move_enemy (%attributes, %positions, %behaviour)
+    la $t6, %attributes
+    la $t5, %positions
+    la $t1, %behaviour
+    save_ra
+    jal ENEMYMOVEMENT
+    load_ra
+.end_macro
+
+.macro move_enemys
+    move_enemy (enemyOneAttributes, enemyOnePositions, BASICMOVEMENTBEHAVIOUR)
 .end_macro
 
 .eqv characterW 16
@@ -163,7 +176,17 @@
 .eqv ENEMY_THREE_WIDTH 7
 .eqv ENEMY_THREE_HEIGHT 7
 
+.eqv POWERUP_HEALTH_SPAWN_DELAY_MIN 10
+.eqv POWERUP_HEALTH_SPAWN_DELAY_MAX 30
+.eqv POWERUP_HEALTH_MAX_AMOUNT 10      # must be less than 16 unless array size is changed
+.eqv POWERUP_HEALTH_WIDTH 7
+.eqv POWERUP_HEALTH_HEIGHT 7
 
+.eqv POWERUP_SAKURA_SPAWN_DELAY_MIN 10
+.eqv POWERUP_SAKURA_SPAWN_DELAY_MAX 30
+.eqv POWERUP_SAKURA_MAX_AMOUNT 10      # must be less than 16 unless array size is changed
+.eqv POWERUP_SAKURA_WIDTH 7
+.eqv POWERUP_SAKURA_HEIGHT 7
 
 .data 0x10100000
 memZero:        .word 0
@@ -208,25 +231,25 @@ gameOverTitle:      .word -1, -1, -1, -1, 0x000000, 0x000000, 0x000000, 0x000000
   
 enemyOneSprite:     .word -1, 0xac3232, -1, -1, -1, 0xac3232, -1, 0xac3232, 0xd95763, 0xac3232, -1, 0xac3232, 0x222034, 0xac3232, 0xac3232, 0xd95763, 0xd95763, 0xac3232, 0x222034, 0xd95763, 0xac3232, 0xac3232, 0x222034, 0xd95763, 0x222034, 0xd95763, 0xd95763, 0xac3232, -1, 0xac3232, 0x222034, 0x222034, 0x222034, 0xac3232, -1, -1, -1, 0xac3232, 0xd95763, 0xac3232, -1, -1, -1, -1, -1, 0xac3232, -1, -1, -1
 
-#amount
-enemyOneAttributes: .word 0
+#amount, delay
+enemyOneAttributes: .word 0, 0
 #x1, y1, x2, y2, ...
 enemyOnePositions:  .word 0:32
 
 enemyTwoSprite:     .word -1, 0x99e550, 0x6abe30, 0x99e550, 0x6abe30, 0x6abe30, -1, 0xd95763, 0x6abe30, 0x6abe30, 0x6abe30, 0x99e550, 0x99e550, 0x99e550, 0x99e550, 0x99e550, 0x6abe30, 0x6abe30, 0x6abe30, 0x6abe30, 0xd95763, -1, 0xd95763, 0x6abe30, 0x99e550, 0x6abe30, 0x6abe30, -1, 0x000000, 0x000000, 0x000000, 0x000000, 0x8f563b, -1, -1, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, -1, -1, -1, 0x8f563b, 0x8f563b, 0x8f563b, 0x000000, 0x8f563b, -1
-enemyTwoAttributes: .word 0
+enemyTwoAttributes: .word 0, 0
 enemyTwoPositions:  .word 0:32
 
 enemyThreeSprite:       .word 0x663931, -1, -1, -1, -1, -1, -1, 0x663931, 0x663931, 0xc89844, 0xc89844, 0xc89844, -1, -1, -1, 0x663931, 0x663931, 0xffd765, 0xffd765, 0xc89844, -1, 0xc89844, 0xffd765, 0x663931, 0x663931, 0xffd765, 0xffd765, 0xc89844, 0x3f3f74, 0x3f3f74, 0x3f3f74, 0x3f3f74, 0x3f3f74, 0x3f3f74, 0x3f3f74, 0xcbdbfc, 0x3f3f74, 0xcbdbfc, 0x3f3f74, 0xcbdbfc, 0x3f3f74, 0xcbdbfc, -1, 0xcbdbfc, 0xcbdbfc, 0xcbdbfc, 0xcbdbfc, 0xcbdbfc, -1
-enemyThreeAttributes:   .word 0
+enemyThreeAttributes:   .word 0, 0
 enemyThreePositions:    .word 0:32
 
 powerUpHealthSprite:        .word -1, 0x323c39, -1, -1, -1, 0x323c39, -1, 0x323c39, 0x3f3f74, 0x323c39, -1, 0x323c39, 0x696a6a, 0x323c39, 0x323c39, 0x222034, 0x696a6a, 0x323c39, 0x696a6a, 0x696a6a, 0x323c39, 0x3f3f74, 0x3f3f74, 0x696a6a, 0x696a6a, 0x696a6a, 0x696a6a, 0x323c39, 0x3f3f74, 0x323c39, 0x696a6a, 0x696a6a, 0x696a6a, 0x323c39, -1, -1, -1, 0x323c39, 0x696a6a, 0x323c39, -1, -1, 0x3f3f74, -1, -1, 0x323c39, -1, -1, -1
-powerUpHealthAttributes:    .word 0
+powerUpHealthAttributes:    .word 0, 0
 powerUpHealthPositions:     .word 0:32
 
 powerUpSakuraSprite:        .word -1, 0xd77bba, 0xd77bba, -1, 0xd77bba, 0xd77bba, -1, 0xd77bba, 0xd77bba, 0xd77bba, 0xd95763, 0xd77bba, 0xd77bba, 0xd77bba, 0xd77bba, 0xd77bba, 0xd95763, 0xfbf236, 0xd95763, 0xd77bba, 0xd77bba, -1, 0xd95763, 0xfbf236, 0xfbf236, 0xfbf236, 0xd95763, -1, 0xd77bba, 0xd77bba, 0xd95763, 0xfbf236, 0xd95763, 0xd77bba, 0xd77bba, 0xd77bba, 0xd77bba, 0xd77bba, 0xd95763, 0xd77bba, 0xd77bba, 0xd77bba, -1, 0xd77bba, 0xd77bba, -1, 0xd77bba, 0xd77bba, -1
-powerUpSakuraAttributes:    .word 0
+powerUpSakuraAttributes:    .word 0, 0
 powerUpSakuraPositions:     .word 0:32
 
 .text 0x00400000
@@ -303,7 +326,7 @@ GAMELOOPSETUP:
         collision (enemyOneAttributes, enemyOnePositions, ENEMY_ONE_WIDTH, ENEMY_ONE_HEIGHT, COLBEHAVIOURSUB1H)
 
         #update enemys
-        jal ENEMYMOVEMENT
+        move_enemys ()
         jal ENEMYHANDLER
 
         # Draws background
@@ -572,31 +595,44 @@ ENEMYHANDLER:
     jr $ra
 
 ENEMYMOVEMENT:
-    lw $t7, enemyOneAttributes
+    # $t6 enemyAttributes address
+    lw $t7, 0($t6)
+    # $t5 enemyPos address
+    # $t1 movement behaviour address
     
     j ENEMYMOVEMENTFOR
     ENEMYMOVEMENTMOVE:
         sll $t4, $t2, 3
-        lw $t9, enemyOnePositions+0($t4)
-        addi $t9, $t9, -1
-        sw $t9, enemyOnePositions+0($t4)
-        bgt $t9, $zero, ENEMYMOVEMENTREMOVEDONE
+        add $t0, $t4, $t5
+        # movment handling
+        save_ra
+        jalr $t1
+        load_ra
+
+        bne $t9, $zero, ENEMYMOVEMENTREMOVEDONE
         li $t9, 120
         ENEMYMOVEMENTREMOVELOOP:
             beq $t4, $t9, ENEMYMOVEMENTREMOVELOOPDONE
-            lw $t8, enemyOnePositions+8($t4)
-            sw $t8, enemyOnePositions+0($t4)
+            add $t0, $t4, $t5
+            lw $t8, 8($t0)
+            sw $t8, 0($t0)
             add $t4, $t4, 4
             j ENEMYMOVEMENTREMOVELOOP
         ENEMYMOVEMENTREMOVELOOPDONE:
-            lw $t9, enemyOneAttributes
+            lw $t9, 0($t6)
             addi $t9, $t9, -1
-            sw $t9, enemyOneAttributes
+            sw $t9, 0($t6)
         ENEMYMOVEMENTREMOVEDONE:
         jr $ra
     ENEMYMOVEMENTFOR:
         for ($t2, 0, $t7, ENEMYMOVEMENTMOVE)
 
+    jr $ra
+
+BASICMOVEMENTBEHAVIOUR:
+    lw $t9, 0($t0)
+    addi $t9, $t9, -1
+    sw $t9, 0($t0)
     jr $ra
 
 DRAWSCORE:
