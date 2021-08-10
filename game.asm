@@ -138,6 +138,10 @@
 
 .macro draw_enemys
     draw_enemy (enemyOneAttributes, enemyOnePositions, enemyOneSprite, ENEMY_ONE_WIDTH, ENEMY_ONE_HEIGHT)
+    draw_enemy (enemyTwoAttributes, enemyTwoPositions, enemyTwoSprite, ENEMY_TWO_WIDTH, ENEMY_TWO_HEIGHT)
+    draw_enemy (enemyThreeAttributes, enemyThreePositions, enemyThreeSprite, ENEMY_THREE_WIDTH, ENEMY_THREE_HEIGHT)
+    draw_enemy (powerUpHealthAttributes, powerUpHealthPositions, powerUpHealthSprite, POWERUP_HEALTH_WIDTH, POWERUP_HEALTH_HEIGHT)
+    draw_enemy (powerUpSakuraAttributes, powerUpSakuraPositions, powerUpSakuraSprite, POWERUP_SAKURA_WIDTH, POWERUP_SAKURA_HEIGHT)
 .end_macro
 
 .macro move_enemy (%attributes, %positions, %behaviour)
@@ -151,6 +155,10 @@
 
 .macro move_enemys
     move_enemy (enemyOneAttributes, enemyOnePositions, BASICMOVEMENTBEHAVIOUR)
+    move_enemy (enemyTwoAttributes, enemyTwoPositions, BASICMOVEMENTBEHAVIOUR)
+    move_enemy (enemyThreeAttributes, enemyThreePositions, BASICMOVEMENTBEHAVIOUR)
+    move_enemy (powerUpHealthAttributes, powerUpHealthPositions, BASICMOVEMENTBEHAVIOUR)
+    move_enemy (powerUpSakuraAttributes, powerUpSakuraPositions, BASICMOVEMENTBEHAVIOUR)
 .end_macro
 
 .macro spawn_enemy (%attributes, %positions, %enemyWidth, %enemyHeight, %amountMax, %delayMin, %delayMax)
@@ -168,6 +176,10 @@
 
 .macro spawn_enemys
     spawn_enemy (enemyOneAttributes, enemyOnePositions, ENEMY_ONE_WIDTH, ENEMY_ONE_HEIGHT, ENEMY_ONE_MAX_AMOUNT, ENEMY_ONE_SPAWN_DELAY_MIN, ENEMY_ONE_SPAWN_DELAY_MAX)
+    spawn_enemy (enemyTwoAttributes, enemyTwoPositions, ENEMY_TWO_WIDTH, ENEMY_TWO_HEIGHT, ENEMY_TWO_MAX_AMOUNT, ENEMY_TWO_SPAWN_DELAY_MIN, ENEMY_TWO_SPAWN_DELAY_MAX)
+    spawn_enemy (enemyThreeAttributes, enemyThreePositions, ENEMY_THREE_WIDTH, ENEMY_THREE_HEIGHT, ENEMY_THREE_MAX_AMOUNT, ENEMY_THREE_SPAWN_DELAY_MIN, ENEMY_THREE_SPAWN_DELAY_MAX)
+    spawn_enemy (powerUpHealthAttributes, powerUpHealthPositions, POWERUP_HEALTH_WIDTH, POWERUP_HEALTH_HEIGHT, POWERUP_HEALTH_MAX_AMOUNT, POWERUP_HEALTH_SPAWN_DELAY_MIN, POWERUP_HEALTH_SPAWN_DELAY_MAX)
+    spawn_enemy (powerUpSakuraAttributes, powerUpSakuraPositions, POWERUP_SAKURA_WIDTH, POWERUP_SAKURA_HEIGHT, POWERUP_SAKURA_MAX_AMOUNT, POWERUP_SAKURA_SPAWN_DELAY_MIN, POWERUP_SAKURA_SPAWN_DELAY_MAX)
 .end_macro
 
 .eqv characterW 16

@@ -16,15 +16,21 @@
 # - Milestone 3
 #
 # Which approved features have been implemented for milestone 3?
-# 1.
-# 2. 
-# 3. 
+# 1. Scoring - Score is based on timing
+# 2. Pickups - 2 types, cursed heart adds health,
+#       cherry blossom flower adds score
+# 3. Enemy ships 
+#       the militia heart is normal,
+#       the shotgun tree steps forward sometimes,
+#       the sword ramen bowl has a slight homing towards the player
 # 
-# Non approved additional features
+# Non approved things of note
 # 1. No flickering. Added a buffer so it doesn't flicker.
 # 2. Sprite rendering! The sprites are loaded and displayed
 #    from a word array instead of being hard coded.
-# 3.
+# 3. Collision, movement and display of enemys is modular
+#    with a few copyed lines, and defining a new movement
+#    behaviors, a brand new enemy can be added in 1 minute of effort
 # 
 # Link to video demonstration for final submission:
 # - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
