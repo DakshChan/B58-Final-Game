@@ -1,12 +1,52 @@
-# Daksh Malhotra
-# 1006912094
-
+#####################################################################
+#
+# CSCB58 Summer 2021 Assembly Final Project
+# University of Toronto, Scarborough
+#
+# Student: Daksh Malhotra, 1006912094, malho258
+#
 # Bitmap Display Configuration:
-# - Unit width in pixels: 4
-# - Unit height in pixels: 4
-# - Display width in pixels: 512
-# - Display height in pixels: 256
-# - Base Address for Display: 0x10040000 (heap)
+# -Unit width in pixels: 4
+# -Unit height in pixels: 4
+# -Display width in pixels: 512
+# -Display height in pixels: 256
+# -Base Address for Display: 0x10040000 (heap)
+#
+# Which milestones have been reached in this submission?
+# - Milestone 3
+#
+# Which approved features have been implemented for milestone 3?
+# 1. Scoring - Score is based on timing
+# 2. Pickups - 2 types, cursed heart adds health,
+#       cherry blossom flower adds score
+# 3. Enemy ships 
+#       the militia heart is normal,
+#       the shotgun tree steps forward sometimes,
+#       the sword ramen bowl has a slight homing towards the player
+# 
+# Non approved things of note
+# 1. No flickering. Added a buffer so it doesn't flicker.
+# 2. Sprite rendering! The sprites are loaded and displayed
+#    from a word array instead of being hard coded.
+# 3. Collision, movement and display of enemys is modular
+#    with a few copyed lines, and defining a new movement
+#    behaviors, a brand new enemy can be added in 1 minute of effort
+# 
+# Link to video demonstration for final submission:
+# - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
+#
+# Are you OK with us sharing the video with people outside course staff?
+# - yes, and please share this project github link as well!
+# - https://github.com/DakshChan/B58-Final-Game
+#
+# Any additional information that the TA needs to know:
+# - A fresh launch of mips is recommended. Also recommend
+#   the regular mips, not the "fixed" mips as it runs better.
+# - If the game crashes (which it shouldn't), on relaunch the game will
+#   be extremely slow. You should restart mips if this happens.
+#   If you paused or stopped manually, It should be fine.
+#
+#####################################################################
 
 .eqv SLEEP_TIME 40
 
@@ -155,8 +195,8 @@
 
 .macro move_enemys
     move_enemy (enemyOneAttributes, enemyOnePositions, BASICMOVEMENTBEHAVIOUR)
-    move_enemy (enemyTwoAttributes, enemyTwoPositions, BASICMOVEMENTBEHAVIOUR)
-    move_enemy (enemyThreeAttributes, enemyThreePositions, BASICMOVEMENTBEHAVIOUR)
+    move_enemy (enemyTwoAttributes, enemyTwoPositions, PAUSEMOVMENTBEHAVIOUR)
+    move_enemy (enemyThreeAttributes, enemyThreePositions, HOMINGMOVEMENTBEHAVIOUR)
     move_enemy (powerUpHealthAttributes, powerUpHealthPositions, BASICMOVEMENTBEHAVIOUR)
     move_enemy (powerUpSakuraAttributes, powerUpSakuraPositions, BASICMOVEMENTBEHAVIOUR)
 .end_macro
@@ -191,31 +231,31 @@
 
 .eqv ENEMY_ONE_SPAWN_DELAY_MIN 10
 .eqv ENEMY_ONE_SPAWN_DELAY_MAX 30
-.eqv ENEMY_ONE_MAX_AMOUNT 10        # must be less than 16 unless array size is changed
+.eqv ENEMY_ONE_MAX_AMOUNT 3        # must be less than 16 unless array size is changed
 .eqv ENEMY_ONE_WIDTH 7
 .eqv ENEMY_ONE_HEIGHT 7
 
-.eqv ENEMY_TWO_SPAWN_DELAY_MIN 10
-.eqv ENEMY_TWO_SPAWN_DELAY_MAX 30
-.eqv ENEMY_TWO_MAX_AMOUNT 10        # must be less than 16 unless array size is changed
+.eqv ENEMY_TWO_SPAWN_DELAY_MIN 30
+.eqv ENEMY_TWO_SPAWN_DELAY_MAX 100
+.eqv ENEMY_TWO_MAX_AMOUNT 3        # must be less than 16 unless array size is changed
 .eqv ENEMY_TWO_WIDTH 7
 .eqv ENEMY_TWO_HEIGHT 7
 
-.eqv ENEMY_THREE_SPAWN_DELAY_MIN 10
-.eqv ENEMY_THREE_SPAWN_DELAY_MAX 30
-.eqv ENEMY_THREE_MAX_AMOUNT 10      # must be less than 16 unless array size is changed
+.eqv ENEMY_THREE_SPAWN_DELAY_MIN 30
+.eqv ENEMY_THREE_SPAWN_DELAY_MAX 100
+.eqv ENEMY_THREE_MAX_AMOUNT 3      # must be less than 16 unless array size is changed
 .eqv ENEMY_THREE_WIDTH 7
 .eqv ENEMY_THREE_HEIGHT 7
 
-.eqv POWERUP_HEALTH_SPAWN_DELAY_MIN 10
-.eqv POWERUP_HEALTH_SPAWN_DELAY_MAX 30
-.eqv POWERUP_HEALTH_MAX_AMOUNT 10      # must be less than 16 unless array size is changed
+.eqv POWERUP_HEALTH_SPAWN_DELAY_MIN 100
+.eqv POWERUP_HEALTH_SPAWN_DELAY_MAX 300
+.eqv POWERUP_HEALTH_MAX_AMOUNT 1      # must be less than 16 unless array size is changed
 .eqv POWERUP_HEALTH_WIDTH 7
 .eqv POWERUP_HEALTH_HEIGHT 7
 
-.eqv POWERUP_SAKURA_SPAWN_DELAY_MIN 10
-.eqv POWERUP_SAKURA_SPAWN_DELAY_MAX 30
-.eqv POWERUP_SAKURA_MAX_AMOUNT 10      # must be less than 16 unless array size is changed
+.eqv POWERUP_SAKURA_SPAWN_DELAY_MIN 100
+.eqv POWERUP_SAKURA_SPAWN_DELAY_MAX 300
+.eqv POWERUP_SAKURA_MAX_AMOUNT 1      # must be less than 16 unless array size is changed
 .eqv POWERUP_SAKURA_WIDTH 7
 .eqv POWERUP_SAKURA_HEIGHT 7
 
@@ -369,6 +409,10 @@ GAMELOOPSETUP:
     GAMELOOPSTART:
         # collision
         collision (enemyOneAttributes, enemyOnePositions, ENEMY_ONE_WIDTH, ENEMY_ONE_HEIGHT, COLBEHAVIOURSUB1H)
+        collision (enemyTwoAttributes, enemyTwoPositions, ENEMY_TWO_WIDTH, ENEMY_TWO_HEIGHT, COLBEHAVIOURSUB1H)
+        collision (enemyThreeAttributes, enemyThreePositions, ENEMY_THREE_WIDTH, ENEMY_THREE_HEIGHT, COLBEHAVIOURSUB1H)
+        collision (powerUpHealthAttributes, powerUpHealthPositions, POWERUP_HEALTH_WIDTH, POWERUP_HEALTH_HEIGHT, COLBEHAVIOURADD2H)
+        collision (powerUpSakuraAttributes, powerUpSakuraPositions, POWERUP_SAKURA_WIDTH, POWERUP_HEALTH_HEIGHT, COLBEHAVIOURADDSCORE)
 
         #update enemys
         move_enemys ()
@@ -617,6 +661,21 @@ COLBEHAVIOURSUB1H:
     sw $t9, characterHealth
     jr $ra
 
+COLBEHAVIOURADD2H:
+    lw $t9, characterHealth
+    addi $t9, $t9, 2
+    blt $t9, 10, COLBEHAVIOURADD2HCAP
+    li $t9, 10
+    COLBEHAVIOURADD2HCAP:
+    sw $t9, characterHealth
+    jr $ra
+
+COLBEHAVIOURADDSCORE:
+    lw $t9, gameScores
+    addi $t9, $t9, 100
+    sw $t9, gameScores
+    jr $ra
+
 ENEMYSPAWNER:
     # $t0 attributes address
     # $t1 positions address
@@ -690,9 +749,42 @@ ENEMYMOVEMENT:
     jr $ra
 
 BASICMOVEMENTBEHAVIOUR:
-    lw $t9, 0($t0)
+    lw $t9, 0($t0) # x
     addi $t9, $t9, -1
     sw $t9, 0($t0)
+    jr $ra
+
+HOMINGMOVEMENTBEHAVIOUR:
+    save_ra
+    jal BASICMOVEMENTBEHAVIOUR
+    load_ra
+    lw $s0, characterX
+    lw $t9, 0($t0)
+    bgt $s0, $t9, HOMINGMOVEMENTBEHAVIOURNOHOME
+    lw $t9, gameScores
+    li $s0, 5
+    div $t9, $s0
+    mfhi $t9
+    bne $t9, $zero, HOMINGMOVEMENTBEHAVIOURNOHOME
+    lw $t9, 4($t0) # y
+    lw $s0, characterY
+    bgt $t9, $s0 HOMINGMOVEMENTBEHAVIOURUP
+    addi $t9, $t9, 1
+    sw $t9, 4($t0)
+    j HOMINGMOVEMENTBEHAVIOURNOHOME
+    HOMINGMOVEMENTBEHAVIOURUP:
+    addi $t9, $t9, -1
+    sw $t9, 4($t0)
+    HOMINGMOVEMENTBEHAVIOURNOHOME: 
+    jr $ra
+
+PAUSEMOVMENTBEHAVIOUR:
+    rand_int_range($s0, 0, 2)
+    bne $s0, $zero, PAUSEMOVMENTBEHAVIOURNOMOVE
+    save_ra
+    j BASICMOVEMENTBEHAVIOUR
+    load_ra
+    PAUSEMOVMENTBEHAVIOURNOMOVE:
     jr $ra
 
 DRAWSCORE:
